@@ -34,6 +34,7 @@ const NAME_WITH_DIACRITICS = /^[\p{L}_][\p{L}\p{N}_.\-[\]]*$/u;
 export function tokenize(input: string, options: TokenizeOptions = {}): Token[] {
   const delimiters = options.delimiters ?? DEFAULT_DELIMITERS;
   const allowDiacritics = options.allowDiacritics ?? true;
+  const angularParser = options.angularParser ?? true;
   const { open, close } = delimiters;
 
   if (!open || !close) {
@@ -73,7 +74,7 @@ export function tokenize(input: string, options: TokenizeOptions = {}): Token[] 
     const tokenEnd = closeIdx + close.length;
     const raw = input.slice(openIdx, tokenEnd);
 
-    const classified = classify(rawContent, allowDiacritics);
+    const classified = classify(rawContent, { allowDiacritics, angularParser });
     if (classified.kind === "invalid") {
       tokens.push(
         invalidTag(input, openIdx, tokenEnd, classified.name, {
@@ -139,7 +140,19 @@ interface ClassifyResultInvalid {
 
 type ClassifyResult = ClassifyResultValid | ClassifyResultInvalid;
 
-function classify(content: string, allowDiacritics: boolean): ClassifyResult {
+interface ClassifyOpts {
+  allowDiacritics: boolean;
+  angularParser: boolean;
+}
+
+/**
+ * In angular-parser-modus accepteert DocxTemplater veel bredere content
+ * binnen tags: pipes (`{naam|lower}`), argumenten (`{d | date: 'dd-MM'}`),
+ * vergelijkingen in secties (`{#status == "Open"}`), typografische quotes,
+ * spaties. We laten de name-validatie dan vallen en markeren alleen lege
+ * tags of onbekende prefixes als fout.
+ */
+function classify(content: string, opts: ClassifyOpts): ClassifyResult {
   const trimmed = content.trim();
 
   if (trimmed.length === 0) {
@@ -153,7 +166,7 @@ function classify(content: string, allowDiacritics: boolean): ClassifyResult {
     if (name.length === 0) {
       return { kind: "section-close", name: "" };
     }
-    if (!isValidName(name, allowDiacritics)) {
+    if (!opts.angularParser && !isValidName(name, opts.allowDiacritics)) {
       return { kind: "invalid", name, reason: "invalid-name" };
     }
     return { kind: "section-close", name };
@@ -164,17 +177,23 @@ function classify(content: string, allowDiacritics: boolean): ClassifyResult {
     if (name.length === 0) {
       return { kind: "invalid", name: "", reason: "empty-tag" };
     }
-    if (!isValidName(name, allowDiacritics)) {
+    if (!opts.angularParser && !isValidName(name, opts.allowDiacritics)) {
       return { kind: "invalid", name, reason: "invalid-name" };
     }
     return { kind: PREFIX_MAP[prefix], name };
   }
 
-  if (!allowedLeadingChar(prefix, allowDiacritics)) {
+  // Geen prefix → placeholder.
+  if (opts.angularParser) {
+    // Accepteer elke niet-lege expression.
+    return { kind: "placeholder", name: trimmed };
+  }
+
+  if (!allowedLeadingChar(prefix, opts.allowDiacritics)) {
     return { kind: "invalid", name: trimmed, reason: "unknown-prefix" };
   }
 
-  if (!isValidName(trimmed, allowDiacritics)) {
+  if (!isValidName(trimmed, opts.allowDiacritics)) {
     return { kind: "invalid", name: trimmed, reason: "invalid-name" };
   }
 

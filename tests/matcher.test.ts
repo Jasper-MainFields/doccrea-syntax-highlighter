@@ -63,19 +63,19 @@ describe("matcher — balans", () => {
   });
 });
 
-describe("matcher — syntax-fouten worden issues", () => {
+describe("matcher — syntax-fouten worden issues (strikte modus)", () => {
   it("lege tag produceert issue", () => {
-    const r = parse("tekst {} meer");
+    const r = parse("tekst {} meer", { angularParser: false });
     expect(r.issues[0].reason).toBe("empty-tag");
   });
 
   it("onbekende prefix produceert issue", () => {
-    const r = parse("{!iets}");
+    const r = parse("{!iets}", { angularParser: false });
     expect(r.issues[0].reason).toBe("unknown-prefix");
   });
 
   it("onterminate tag produceert issue", () => {
-    const r = parse("{naam");
+    const r = parse("{naam", { angularParser: false });
     expect(r.issues[0].reason).toBe("unterminated");
   });
 });

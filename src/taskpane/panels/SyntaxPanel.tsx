@@ -89,15 +89,17 @@ export function SyntaxPanel(): JSX.Element {
       </div>
 
       <div className={s.card}>
-        <Field label="Angular-parser modus (extra expressies zoals {user.name | upper})">
+        <Field label="Angular-parser modus (pipes, vergelijkingen, argumenten)">
           <Switch
             checked={settings.syntax.angularParser}
             onChange={(_, d) => updateSyntax("angularParser", Boolean(d.checked))}
           />
         </Field>
         <Body1>
-          Zet dit alleen aan als je DocxTemplater met de angular-parser-module draait. In deze
-          modus accepteren we pipes en expressies binnen tags.
+          Aan staat de highlighter brede expressies toe binnen tags, zoals
+          <code>{` {naam|lower} `}</code>, <code>{` {d | date: 'dd-MM'} `}</code> en
+          <code>{` {#status == "Open"} `}</code>. Zet uit voor strikte validatie als je
+          DocxTemplater zonder angular-parser-module gebruikt.
         </Body1>
       </div>
     </div>

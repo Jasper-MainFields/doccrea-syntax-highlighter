@@ -59,6 +59,12 @@ export interface Delimiters {
 export interface TokenizeOptions {
   delimiters?: Delimiters;
   allowDiacritics?: boolean;
+  /**
+   * Accepteer angular-parser expressies (pipes, operatoren, argumenten, quotes).
+   * Default true — de meeste DocxTemplater-setups gebruiken angular-parser of
+   * verwachten dat de highlighter er geen false positives op geeft.
+   */
+  angularParser?: boolean;
 }
 
 export interface ParseResult {

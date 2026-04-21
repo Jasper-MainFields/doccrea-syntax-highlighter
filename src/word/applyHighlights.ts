@@ -70,6 +70,7 @@ export async function applyHighlights(
           close: settings.syntax.delimiterClose,
         },
         allowDiacritics: settings.syntax.allowDiacritics,
+        angularParser: settings.syntax.angularParser,
       });
 
       for (const issue of parsed.issues) {

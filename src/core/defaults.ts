@@ -233,7 +233,10 @@ export function buildDefaultSettings(): AppSettings {
       delimiterOpen: "{",
       delimiterClose: "}",
       allowDiacritics: true,
-      angularParser: false,
+      // Default AAN: de meeste DocxTemplater-sjablonen gebruiken pipes
+      // (`{naam|lower}`) of vergelijkingen (`{#status == "Open"}`) die
+      // anders als fout zouden worden gemarkeerd.
+      angularParser: true,
     },
     validation: {
       checkBalance: true,

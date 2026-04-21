@@ -44,6 +44,7 @@ export async function clearHighlights(settings: AppSettings): Promise<ClearOutco
           close: settings.syntax.delimiterClose,
         },
         allowDiacritics: settings.syntax.allowDiacritics,
+        angularParser: settings.syntax.angularParser,
       });
 
       const occurrenceByRaw = new Map<string, number>();

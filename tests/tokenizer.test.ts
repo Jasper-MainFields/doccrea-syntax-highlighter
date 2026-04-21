@@ -43,14 +43,14 @@ describe("tokenizer — placeholder", () => {
     expect(t.name).toBe("naam.straßenname");
   });
 
-  it("weigert diakrieten wanneer uitgeschakeld", () => {
-    const [t] = tagTokens(tokenize(DIACRITICS, { allowDiacritics: false }));
+  it("weigert diakrieten wanneer uitgeschakeld (strikt)", () => {
+    const [t] = tagTokens(tokenize(DIACRITICS, { allowDiacritics: false, angularParser: false }));
     expect(t.kind).toBe("invalid");
     expect(t.invalidReason).toBe("invalid-name");
   });
 
   it("weigert leading diakriet als ascii-strict modus aanstaat", () => {
-    const [t] = tagTokens(tokenize("{ßnaam}", { allowDiacritics: false }));
+    const [t] = tagTokens(tokenize("{ßnaam}", { allowDiacritics: false, angularParser: false }));
     expect(t.kind).toBe("invalid");
     expect(t.invalidReason).toBe("unknown-prefix");
   });
@@ -91,31 +91,33 @@ describe("tokenizer — raw en partial", () => {
   });
 });
 
-describe("tokenizer — foutgevallen", () => {
+describe("tokenizer — foutgevallen (strikte modus)", () => {
+  const strict = { angularParser: false } as const;
+
   it("markeert lege tag als invalid", () => {
-    const [t] = tagTokens(tokenize("{}"));
+    const [t] = tagTokens(tokenize("{}", strict));
     expect(t.kind).toBe("invalid");
     expect(t.invalidReason).toBe("empty-tag");
   });
 
   it("markeert whitespace-only tag als invalid", () => {
-    const [t] = tagTokens(tokenize("{   }"));
+    const [t] = tagTokens(tokenize("{   }", strict));
     expect(t.invalidReason).toBe("empty-tag");
   });
 
   it("markeert onterminate tag als invalid", () => {
-    const [t] = tagTokens(tokenize("prefix {naam suffix"));
+    const [t] = tagTokens(tokenize("prefix {naam suffix", strict));
     expect(t.kind).toBe("invalid");
     expect(t.invalidReason).toBe("unterminated");
   });
 
   it("markeert onbekend prefix als invalid", () => {
-    const [t] = tagTokens(tokenize("{!iets}"));
+    const [t] = tagTokens(tokenize("{!iets}", strict));
     expect(t.invalidReason).toBe("unknown-prefix");
   });
 
   it("markeert spaties in de naam als invalid", () => {
-    const [t] = tagTokens(tokenize("{gebroken naam}"));
+    const [t] = tagTokens(tokenize("{gebroken naam}", strict));
     expect(t.invalidReason).toBe("invalid-name");
   });
 });
