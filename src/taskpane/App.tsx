@@ -15,7 +15,7 @@ import { ColorsPanel } from "./panels/ColorsPanel.js";
 import { SyntaxPanel } from "./panels/SyntaxPanel.js";
 import { SnippetsPanel } from "./panels/SnippetsPanel.js";
 import { AboutPanel } from "./panels/AboutPanel.js";
-import { MAINFIELDS_BRAND_COLOR } from "./branding.js";
+import { MAINFIELDS_GRAY, MAINFIELDS_TEAL } from "./branding.js";
 
 const useStyles = makeStyles({
   container: {
@@ -32,8 +32,12 @@ const useStyles = makeStyles({
     flexDirection: "column",
     gap: tokens.spacingVerticalXS,
   },
-  brandWord: {
-    color: MAINFIELDS_BRAND_COLOR,
+  brandMain: {
+    color: MAINFIELDS_GRAY,
+    fontWeight: tokens.fontWeightBold,
+  },
+  brandFields: {
+    color: MAINFIELDS_TEAL,
     fontWeight: tokens.fontWeightBold,
   },
   content: {
@@ -58,10 +62,12 @@ export function App(): JSX.Element {
       <div className={styles.container}>
         <header className={styles.header}>
           <Title2>
-            <span className={styles.brandWord}>MainFields</span> DocCrea Syntax Highlighter
+            <span className={styles.brandMain}>Main</span>
+            <span className={styles.brandFields}>Fields</span> DocCrea Syntax Highlighter
           </Title2>
           <Caption1>
-            Gemaakt door <span className={styles.brandWord}>MainFields</span>
+            Gemaakt door <span className={styles.brandMain}>Main</span>
+            <span className={styles.brandFields}>Fields</span>
           </Caption1>
         </header>
 

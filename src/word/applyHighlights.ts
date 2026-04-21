@@ -167,7 +167,8 @@ async function highlightOneParagraph(
 ): Promise<number> {
   interface SearchEntry {
     primary: Word.RangeCollection;
-    fallback: Word.RangeCollection | null;
+    wildcard: Word.RangeCollection | null;
+    trimmed: Word.RangeCollection | null;
   }
   const searches = new Map<string, SearchEntry>();
 
@@ -175,17 +176,31 @@ async function highlightOneParagraph(
     if (searches.has(token.raw)) continue;
     if (token.raw.length > MAX_SEARCH_LENGTH) continue;
 
+    // Primair: letterlijke search. Snelst en werkt voor de meeste tags.
     const primary = paragraph.search(token.raw, SEARCH_OPTIONS);
     primary.load("items");
 
-    let fallback: Word.RangeCollection | null = null;
-    const safeRaw = makeSafeRaw(token.raw, settings.syntax.delimiterOpen, settings.syntax.delimiterClose);
-    if (safeRaw && safeRaw !== token.raw && PROBLEMATIC.test(token.raw)) {
-      fallback = paragraph.search(safeRaw, SEARCH_OPTIONS);
-      fallback.load("items");
+    // Fallback 1 (wildcard-escape): Word behandelt ^, parens en backslashes
+    // ook in `matchWildcards:false` modus soms als speciale tekens
+    // (^p = paragraaf, ^t = tab). Met wildcards AAN én correct ge-escapet
+    // match hij de tekst letterlijk. Belangrijk voor inverted-tags `{^name}`.
+    let wildcard: Word.RangeCollection | null = null;
+    if (PROBLEMATIC.test(token.raw)) {
+      const escaped = escapeForWildcardSearch(token.raw);
+      wildcard = paragraph.search(escaped, WILDCARD_SEARCH_OPTIONS);
+      wildcard.load("items");
     }
 
-    searches.set(token.raw, { primary, fallback });
+    // Fallback 2 (trimmen): strip trailing garbage — handig bij unterminated
+    // tags als `{/Foutt)` waar de `)` niet bij de eigenlijke tag hoort.
+    let trimmed: Word.RangeCollection | null = null;
+    const safeRaw = makeSafeRaw(token.raw, settings.syntax.delimiterOpen, settings.syntax.delimiterClose);
+    if (safeRaw && safeRaw !== token.raw) {
+      trimmed = paragraph.search(safeRaw, SEARCH_OPTIONS);
+      trimmed.load("items");
+    }
+
+    searches.set(token.raw, { primary, wildcard, trimmed });
   }
 
   await context.sync();
@@ -202,7 +217,8 @@ async function highlightOneParagraph(
 
     const range =
       entry.primary.items?.[occurrence] ??
-      entry.fallback?.items?.[occurrence] ??
+      entry.wildcard?.items?.[occurrence] ??
+      entry.trimmed?.items?.[occurrence] ??
       null;
 
     if (!range) {
@@ -241,6 +257,24 @@ const SEARCH_OPTIONS: Word.SearchOptions | { [k: string]: boolean } = {
   matchSuffix: false,
   matchWildcards: false,
 };
+
+const WILDCARD_SEARCH_OPTIONS: Word.SearchOptions | { [k: string]: boolean } = {
+  matchCase: true,
+  matchWholeWord: false,
+  matchPrefix: false,
+  matchSuffix: false,
+  matchWildcards: true,
+};
+
+/**
+ * Escape voor Word search in wildcard-modus. Wildcards zijn:
+ *   ? * @ < > ! ( ) [ ] { } \ ^ = ;
+ * Alle bovenstaande moeten worden voorafgegaan door een backslash om
+ * letterlijk te matchen.
+ */
+export function escapeForWildcardSearch(raw: string): string {
+  return raw.replace(/([?*@<>!()[\]{}\\^=;])/g, "\\$1");
+}
 
 function shouldHighlight(
   token: Token,
