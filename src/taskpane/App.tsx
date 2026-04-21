@@ -15,9 +15,7 @@ import { ColorsPanel } from "./panels/ColorsPanel.js";
 import { SyntaxPanel } from "./panels/SyntaxPanel.js";
 import { SnippetsPanel } from "./panels/SnippetsPanel.js";
 import { AboutPanel } from "./panels/AboutPanel.js";
-
-// MainFields huisstijl — dezelfde basis als de icon-gradient in scripts/generate-icons.mjs.
-export const MAINFIELDS_BRAND_COLOR = "#0F4C81";
+import { MAINFIELDS_BRAND_COLOR } from "./branding.js";
 
 const useStyles = makeStyles({
   container: {

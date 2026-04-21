@@ -1,5 +1,5 @@
 import { makeStyles, tokens, Title3, Body1, Caption1, Link } from "@fluentui/react-components";
-import { MAINFIELDS_BRAND_COLOR } from "../App.js";
+import { MAINFIELDS_BRAND_COLOR } from "../branding.js";
 
 const useStyles = makeStyles({
   wrap: {
