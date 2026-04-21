@@ -24,21 +24,28 @@ export interface HighlightError {
 
 // Word search gedraagt zich soms onverwacht op parens, vraagtekens, asterisken
 // — zelfs met matchWildcards:false. Voor tokens waarvan de `raw` die tekens
-// bevat, queuen we een 'safe' fallback-search waarin trailing/leading
-// non-alphanumeric tekens eraf zijn.
+// bevat queuen we een 'safe' fallback-search waarin trailing non-alphanumeric
+// tekens eraf zijn.
 const PROBLEMATIC = /[?*@<>!()[\]\\^=;]/;
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
-// Word's search limiteert op ~255 chars; langere queries faken we via de safe
-// variant. In praktijk komen we daar nooit bij DocxTemplater-tags.
 const MAX_SEARCH_LENGTH = 250;
+// Scheidingsteken tussen paragrafen in de gejoinde documenttekst. `\n` komt
+// niet voor in `paragraph.text` (Word scheidt paragrafen zelf), dus we kunnen
+// er veilig op splitten bij het terugmappen van token-offsets.
+const PARAGRAPH_SEP = "\n";
+
+interface ParagraphMeta {
+  startOffset: number;
+  length: number;
+}
 
 /**
  * Highlight alle DocxTemplater-tags in het document.
  *
- * Werkwijze: per paragraaf één sub-run met eigen try/catch. Één corrupte
- * paragraaf breekt dus niet het hele document. Per paragraaf doen we
- * precies één search per UNIEKE raw — meerdere tokens met dezelfde tekst
- * (bv. meerdere `{#zaak}`) hergebruiken die collection.
+ * Belangrijk: we parsen het HELE document als één string (paragrafen gejoined
+ * met `\n`), zodat secties die over meerdere paragrafen lopen — bv. `{#zaak}`
+ * op pagina 1 en `{/zaak}` op pagina 8 — correct gematcht worden. Daarna
+ * mappen we elke token terug naar zijn paragraaf voor de Word-level search.
  */
 export async function applyHighlights(
   settings: AppSettings,
@@ -54,36 +61,51 @@ export async function applyHighlights(
     for (const p of paragraphItems) p.load("text");
     await context.sync();
 
-    const allIssues: ValidationIssue[] = [];
-    const issueLocations: IssueLocation[] = [];
+    const texts = paragraphItems.map((p) => p.text ?? "");
+    const metas = buildMetas(texts);
+    const joined = texts.join(PARAGRAPH_SEP);
+
+    const parsed = parse(joined, {
+      delimiters: {
+        open: settings.syntax.delimiterOpen,
+        close: settings.syntax.delimiterClose,
+      },
+      allowDiacritics: settings.syntax.allowDiacritics,
+      angularParser: settings.syntax.angularParser,
+    });
+
+    // Groepeer tokens en issues per paragraaf.
+    const tokensByParagraph: TagToken[][] = metas.map(() => []);
+    for (const token of parsed.tokens) {
+      if (token.kind === "text") continue;
+      const pIdx = findParagraph(metas, token.start);
+      if (pIdx < 0) continue;
+      tokensByParagraph[pIdx].push({
+        ...token,
+        start: token.start - metas[pIdx].startOffset,
+        end: token.end - metas[pIdx].startOffset,
+      });
+    }
+
+    const issueLocations: IssueLocation[] = parsed.issues.map((issue) => {
+      const pIdx = findParagraph(metas, issue.range.start);
+      return {
+        issue,
+        paragraphIndex: Math.max(0, pIdx),
+        offsetInParagraph:
+          issue.range.start - (pIdx >= 0 ? metas[pIdx].startOffset : 0),
+      };
+    });
+
     const errors: HighlightError[] = [];
     let tokensHighlighted = 0;
 
     for (let pIdx = 0; pIdx < paragraphItems.length; pIdx++) {
       const paragraph = paragraphItems[pIdx];
-      const text = paragraph.text ?? "";
-      if (text.trim().length === 0) continue;
-
-      const parsed = parse(text, {
-        delimiters: {
-          open: settings.syntax.delimiterOpen,
-          close: settings.syntax.delimiterClose,
-        },
-        allowDiacritics: settings.syntax.allowDiacritics,
-        angularParser: settings.syntax.angularParser,
-      });
-
-      for (const issue of parsed.issues) {
-        allIssues.push(issue);
-        issueLocations.push({
-          issue,
-          paragraphIndex: pIdx,
-          offsetInParagraph: issue.range.start,
-        });
-      }
-
-      const tagTokens = parsed.tokens.filter((t): t is TagToken => t.kind !== "text");
-      const toHighlight = tagTokens.filter((t) => shouldHighlight(t, preset, settings) && t.raw);
+      const paragraphTokens = tokensByParagraph[pIdx];
+      const toHighlight = paragraphTokens.filter(
+        (t) => shouldHighlight(t, preset, settings) && t.raw,
+      );
       if (toHighlight.length === 0) continue;
 
       try {
@@ -98,17 +120,42 @@ export async function applyHighlights(
         const message = err instanceof Error ? err.message : String(err);
         console.warn(`DocCrea: paragraaf ${pIdx} faalde bij highlight:`, message);
         errors.push({ paragraphIndex: pIdx, message });
-        // Probeer context weer werkbaar te maken: nieuwe sync na fout.
         try {
           await context.sync();
         } catch {
-          // negeer; volgende paragraaf krijgt zijn eigen kans
+          /* negeer en volgende proberen */
         }
       }
     }
 
-    return { tokensHighlighted, issues: allIssues, issueLocations, errors };
+    return {
+      tokensHighlighted,
+      issues: parsed.issues,
+      issueLocations,
+      errors,
+    };
   });
+}
+
+function buildMetas(texts: string[]): ParagraphMeta[] {
+  const metas: ParagraphMeta[] = [];
+  let cursor = 0;
+  for (const text of texts) {
+    metas.push({ startOffset: cursor, length: text.length });
+    cursor += text.length + PARAGRAPH_SEP.length;
+  }
+  return metas;
+}
+
+function findParagraph(metas: ParagraphMeta[], globalOffset: number): number {
+  for (let i = metas.length - 1; i >= 0; i--) {
+    if (metas[i].startOffset <= globalOffset) {
+      // Voorkom toewijzing aan separator-positie aan het einde van een paragraaf.
+      if (globalOffset <= metas[i].startOffset + metas[i].length) return i;
+      if (i === metas.length - 1) return i;
+    }
+  }
+  return -1;
 }
 
 async function highlightOneParagraph(
@@ -118,8 +165,6 @@ async function highlightOneParagraph(
   preset: ColorPreset,
   settings: AppSettings,
 ): Promise<number> {
-  // Eén search per unieke raw. Dezelfde tag kan vaker voorkomen — we tellen
-  // occurrences per raw en pakken de Nde match uit de collection.
   interface SearchEntry {
     primary: Word.RangeCollection;
     fallback: Word.RangeCollection | null;
@@ -145,8 +190,6 @@ async function highlightOneParagraph(
 
   await context.sync();
 
-  // Tweede pas: formatting toepassen. Validatie van kleurwaarden om
-  // InvalidArgument-sync-fouten te voorkomen.
   const occurrenceByRaw = new Map<string, number>();
   let applied = 0;
 
