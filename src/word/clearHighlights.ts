@@ -83,13 +83,16 @@ export async function clearHighlights(settings: AppSettings): Promise<ClearOutco
 
 /**
  * Reset de properties die DocCrea kan zetten terug naar Word-default.
- * `"Automatic"` is Word's eigen term voor "auto/inherit tekstkleur".
- * Voor `highlightColor` verwacht Office.js expliciet `null` (niet `""` of
- * "No Color") om de markering te verwijderen — de TypeScript-types kennen dat
- * niet dus een bewuste cast.
+ * Word Mac weigert speciale strings als `"Automatic"` of `""` voor font.color
+ * (InvalidArgument). We zetten daarom expliciet naar zwart; voor markering
+ * accepteert Office.js expliciet `null` om het te verwijderen.
+ *
+ * Caveat: als een gebruiker een eigen niet-zwarte tekstkleur had op een tag,
+ * wordt die bij Clear ook zwart. Dat is acceptabel voor MVP; de echte
+ * oplossing is per-range originele kleuren onthouden vóór we highlighten.
  */
 function resetFontToAuto(range: Word.Range): void {
-  range.font.color = "Automatic";
+  range.font.color = "#000000";
   (range.font as unknown as { highlightColor: string | null }).highlightColor = null;
   range.font.bold = false;
   range.font.underline = "None" as Word.UnderlineType;

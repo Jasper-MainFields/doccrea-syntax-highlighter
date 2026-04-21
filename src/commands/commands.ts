@@ -5,6 +5,8 @@ import { insertSnippet } from "../word/insertSnippet.js";
 import { loadSettings, resolvePreset } from "../word/settings.js";
 import { DEFAULT_SNIPPETS, type Snippet } from "../core/defaults.js";
 
+const LAST_RUN_KEY = "doccrea.lastRun.v1";
+
 Office.onReady(() => {
   // No-op — Office registreert de Action-functies automatisch via associate.
 });
@@ -15,22 +17,22 @@ async function runHighlight(event: Office.AddinCommands.Event): Promise<void> {
     const preset = resolvePreset(settings);
     const result = await applyHighlights(settings, preset);
 
-    // Bewaar het laatste resultaat in roamingSettings zodat het taskpane
-    // de issue-lijst kan tonen zonder opnieuw te hoeven parseren.
-    Office.context.roamingSettings.set(
-      "doccrea.lastRun",
-      JSON.stringify({
-        when: new Date().toISOString(),
-        tokensHighlighted: result.tokensHighlighted,
-        issues: result.issues,
-        issueLocations: result.issueLocations,
-      }),
-    );
-    Office.context.roamingSettings.saveAsync(() => {
-      event.completed();
-    });
+    // Bewaar het laatste resultaat in localStorage (zelfde origin als het
+    // taskpane) zodat de issue-lijst zichtbaar is zonder herparsen.
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(
+        LAST_RUN_KEY,
+        JSON.stringify({
+          when: new Date().toISOString(),
+          tokensHighlighted: result.tokensHighlighted,
+          issues: result.issues,
+          issueLocations: result.issueLocations,
+        }),
+      );
+    }
   } catch (err) {
     console.error("Highlight faalde:", err);
+  } finally {
     event.completed();
   }
 }

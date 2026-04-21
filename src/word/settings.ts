@@ -1,27 +1,34 @@
-/// <reference types="office-js" />
-import { buildDefaultSettings, BUILTIN_PRESETS, type AppSettings, type ColorPreset } from "../core/defaults.js";
+import {
+  buildDefaultSettings,
+  BUILTIN_PRESETS,
+  type AppSettings,
+  type ColorPreset,
+} from "../core/defaults.js";
 
 const SETTINGS_KEY = "doccrea.settings.v1";
 
+/**
+ * Instellingen worden opgeslagen in localStorage van het task pane.
+ *
+ * Opmerking: we gebruiken bewust géén `Office.context.roamingSettings` — die
+ * bestaat alleen voor Outlook. In Word zou dat runtime crashen met
+ * 'undefined is not an object'. `Office.context.document.settings` bestaat wel
+ * voor Word maar is per-document; we willen juist cross-document user prefs.
+ * `localStorage` doet dat en werkt identiek op Windows, Mac en Word Online.
+ */
 export function loadSettings(): AppSettings {
-  const raw = Office.context.roamingSettings?.get(SETTINGS_KEY);
-  if (!raw) return buildDefaultSettings();
   try {
-    const parsed = typeof raw === "string" ? JSON.parse(raw) : (raw as AppSettings);
-    return migrateSettings(parsed);
+    const raw = typeof localStorage === "undefined" ? null : localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return buildDefaultSettings();
+    return migrateSettings(JSON.parse(raw));
   } catch {
     return buildDefaultSettings();
   }
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
-  Office.context.roamingSettings.set(SETTINGS_KEY, JSON.stringify(settings));
-  return new Promise((resolve, reject) => {
-    Office.context.roamingSettings.saveAsync((asyncResult) => {
-      if (asyncResult.status === Office.AsyncResultStatus.Succeeded) resolve();
-      else reject(asyncResult.error);
-    });
-  });
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
 export function resolvePreset(settings: AppSettings): ColorPreset {
@@ -30,8 +37,6 @@ export function resolvePreset(settings: AppSettings): ColorPreset {
 }
 
 function migrateSettings(raw: unknown): AppSettings {
-  // Voor nu alleen schemaVersion 1 → 1. Bij volgende breaking change hier
-  // een migratie-stap toevoegen.
   const defaults = buildDefaultSettings();
   if (!raw || typeof raw !== "object") return defaults;
   const obj = raw as Partial<AppSettings>;

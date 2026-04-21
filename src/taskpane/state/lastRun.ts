@@ -1,8 +1,7 @@
-/// <reference types="office-js" />
 import type { IssueLocation } from "../../word/applyHighlights.js";
 import type { ValidationIssue } from "../../core/types.js";
 
-const LAST_RUN_KEY = "doccrea.lastRun";
+const LAST_RUN_KEY = "doccrea.lastRun.v1";
 
 export interface LastRun {
   when: string;
@@ -13,20 +12,15 @@ export interface LastRun {
 
 export function loadLastRun(): LastRun | null {
   try {
-    const raw = Office.context.roamingSettings?.get(LAST_RUN_KEY);
+    const raw = typeof localStorage === "undefined" ? null : localStorage.getItem(LAST_RUN_KEY);
     if (!raw) return null;
-    return typeof raw === "string" ? (JSON.parse(raw) as LastRun) : (raw as LastRun);
+    return JSON.parse(raw) as LastRun;
   } catch {
     return null;
   }
 }
 
 export async function saveLastRun(run: LastRun): Promise<void> {
-  Office.context.roamingSettings.set(LAST_RUN_KEY, JSON.stringify(run));
-  return new Promise((resolve, reject) => {
-    Office.context.roamingSettings.saveAsync((r) => {
-      if (r.status === Office.AsyncResultStatus.Succeeded) resolve();
-      else reject(r.error);
-    });
-  });
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(LAST_RUN_KEY, JSON.stringify(run));
 }
