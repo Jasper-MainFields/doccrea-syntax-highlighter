@@ -7,6 +7,9 @@ import {
   Dropdown,
   Field,
   makeStyles,
+  MessageBar,
+  MessageBarBody,
+  MessageBarTitle,
   Option,
   Switch,
   tokens,
@@ -153,6 +156,16 @@ export function ColorsPanel(): JSX.Element {
         </Field>
         <Button onClick={duplicateAsCustom}>Dupliceer als eigen preset</Button>
       </div>
+
+      <MessageBar intent="warning">
+        <MessageBarBody>
+          <MessageBarTitle>Tip: placeholder-tekstkleur</MessageBarTitle>
+          DocxTemplater neemt de kleur van een placeholder over naar de gerenderde
+          waarde. Default houden we placeholders daarom zwart en gebruiken alleen
+          een markering (achtergrond). Geef je ze een tekstkleur, druk dan altijd op{" "}
+          <em>Clear highlights</em> vóór je het sjabloon rendert.
+        </MessageBarBody>
+      </MessageBar>
 
       {TAG_ORDER.map((key) => (
         <TagEditor

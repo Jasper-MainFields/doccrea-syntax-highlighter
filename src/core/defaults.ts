@@ -54,7 +54,6 @@ export interface AppSettings {
   schemaVersion: 1;
 }
 
-const MAINFIELDS_PRIMARY = "#0F4C81";
 const MAINFIELDS_SECONDARY = "#2E8B8B";
 const MAINFIELDS_ACCENT = "#7B4BA8";
 const MAINFIELDS_WARNING = "#D97706";
@@ -65,12 +64,16 @@ function buildMainFieldsPreset(): ColorPreset {
   return {
     id: "mainfields",
     name: "MainFields",
-    description: "Huisstijl van MainFields. Aanpasbaar via een eigen preset.",
+    description:
+      "Huisstijl van MainFields. Placeholders blijven zwart zodat je gerenderde tekst niet gekleurd wordt.",
     styles: {
+      // Placeholders krijgen default GEEN tekstkleur: DocxTemplater zou die anders
+      // overnemen in de gerenderde waarde. De markering valt wel op tijdens
+      // bewerking en verdwijnt bij render omdat de tag-tekst vervangen wordt.
       placeholder: {
         enabled: true,
-        color: MAINFIELDS_PRIMARY,
-        highlight: null,
+        color: "#000000",
+        highlight: "#FFF7CC",
         bold: false,
         underline: "none",
       },
@@ -129,7 +132,7 @@ function buildLightPreset(): ColorPreset {
     name: "Licht",
     description: "Zachte tinten op witte achtergrond.",
     styles: {
-      placeholder: { enabled: true, color: "#1D4ED8", highlight: null, bold: false, underline: "none" },
+      placeholder: { enabled: true, color: "#000000", highlight: "#DBEAFE", bold: false, underline: "none" },
       "section-open": { enabled: true, color: "#0F766E", highlight: null, bold: true, underline: "none", useNestingShades: true },
       "section-close": { enabled: true, color: "#0F766E", highlight: null, bold: true, underline: "none", useNestingShades: true },
       "inverted-open": { enabled: true, color: "#7C3AED", highlight: null, bold: true, underline: "none", useNestingShades: true },
@@ -146,7 +149,7 @@ function buildDarkPreset(): ColorPreset {
     name: "Donker",
     description: "Heldere kleuren voor donker themapapier.",
     styles: {
-      placeholder: { enabled: true, color: "#60A5FA", highlight: null, bold: false, underline: "none" },
+      placeholder: { enabled: true, color: "#000000", highlight: "#1E3A5F", bold: false, underline: "none" },
       "section-open": { enabled: true, color: "#34D399", highlight: null, bold: true, underline: "none", useNestingShades: true },
       "section-close": { enabled: true, color: "#34D399", highlight: null, bold: true, underline: "none", useNestingShades: true },
       "inverted-open": { enabled: true, color: "#C084FC", highlight: null, bold: true, underline: "none", useNestingShades: true },
@@ -163,7 +166,7 @@ function buildHighContrastPreset(): ColorPreset {
     name: "Hoog contrast",
     description: "Maximale leesbaarheid voor toegankelijkheid.",
     styles: {
-      placeholder: { enabled: true, color: "#000080", highlight: "#FFFF00", bold: true, underline: "none" },
+      placeholder: { enabled: true, color: "#000000", highlight: "#FFFF00", bold: false, underline: "none" },
       "section-open": { enabled: true, color: "#006400", highlight: "#FFFFFF", bold: true, underline: "single", useNestingShades: true },
       "section-close": { enabled: true, color: "#006400", highlight: "#FFFFFF", bold: true, underline: "single", useNestingShades: true },
       "inverted-open": { enabled: true, color: "#4B0082", highlight: "#FFFFFF", bold: true, underline: "single", useNestingShades: true },

@@ -72,14 +72,24 @@ export async function clearHighlights(settings: AppSettings): Promise<ClearOutco
     for (const entry of pending) {
       const range = entry.results.items[entry.occurrenceIndex];
       if (!range) continue;
-      range.font.color = "";
-      range.font.highlightColor = "";
-      range.font.bold = false;
-      range.font.underline = "None" as Word.UnderlineType;
+      resetFontToAuto(range);
       cleared++;
     }
 
     await context.sync();
     return { cleared };
   });
+}
+
+/**
+ * Reset de properties die DocCrea kan zetten terug naar Word-default.
+ * `"Automatic"` is Word's eigen term voor "auto/inherit tekstkleur" —
+ * veilige reset. `"No Color"` is de officiële reset-waarde voor
+ * highlightColor; een lege string geeft InvalidArgument.
+ */
+function resetFontToAuto(range: Word.Range): void {
+  range.font.color = "Automatic";
+  range.font.highlightColor = "No Color";
+  range.font.bold = false;
+  range.font.underline = "None" as Word.UnderlineType;
 }

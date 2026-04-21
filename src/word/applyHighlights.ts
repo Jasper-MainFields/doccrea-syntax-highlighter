@@ -3,7 +3,6 @@ import { parse } from "../core/matcher.js";
 import type { TagToken, Token, ValidationIssue } from "../core/types.js";
 import type { AppSettings, ColorPreset } from "../core/defaults.js";
 import { resolveStyle, UNDERLINE_MAP } from "./highlightStyles.js";
-import { MARKER } from "./marker.js";
 
 export interface HighlightOutcome {
   tokensHighlighted: number;
@@ -18,27 +17,29 @@ export interface IssueLocation {
 }
 
 interface PendingApplication {
-  paragraphIndex: number;
   token: TagToken;
   occurrenceIndex: number;
-  results: Word.RangeCollection;
+  primary: Word.RangeCollection;
+  fallback: Word.RangeCollection | null;
 }
+
+// Word search gedraagt zich soms onverwacht op parens, vraagtekens, asterisken
+// — zelfs met matchWildcards:false. Voor tokens waarvan de `raw` die tekens
+// bevat, queuen we een 'safe' fallback-search waarin trailing/leading
+// non-alphanumeric tekens eraf zijn. Dan kleurt in elk geval het herkenbare
+// deel van de tag, zodat de gebruiker hem in het document ziet.
+const PROBLEMATIC = /[?*@<>!()[\]\\^=;]/;
 
 /**
  * Highlight alle DocxTemplater-tags in het actieve document.
  *
- * Werkwijze (zie PLAN.md §6.3 voor context):
- *  1. Pak alle paragrafen, lees hun tekst.
- *  2. Parse per paragraaf; bepaal welke tokens gekleurd moeten worden.
- *  3. Queue per tag een `paragraph.search(token.raw)` in één grote batch.
- *  4. Sync → de zoekresultaten zijn binnen.
- *  5. Pas per token de Nde match aan (op basis van occurrence-index).
- *  6. Eén laatste sync om de formatting te committen.
- *
- * We vermijden de Word-search voor de curly-brace-delimiters zelf door
- * `matchWildcards: false` te zetten. Als blijkt dat een toekomstige Word-versie
- * alsnog speciale betekenis geeft aan `{` of `}`, kunnen we hier uitwijken
- * naar een range-getRange-implementatie (spike-resultaat vastleggen in de code).
+ * Werkwijze (zie PLAN.md §6.3):
+ *  1. Lees alle paragrafen en hun tekst.
+ *  2. Parse per paragraaf met onze eigen tokenizer.
+ *  3. Queue per tag een `paragraph.search(raw)` + optionele fallback.
+ *  4. Sync.
+ *  5. Kies de beste gevonden range en pas styling toe.
+ *  6. Laatste sync om te committen.
  */
 export async function applyHighlights(
   settings: AppSettings,
@@ -82,33 +83,25 @@ export async function applyHighlights(
 
       const tagTokens = parsed.tokens.filter((t): t is TagToken => t.kind !== "text");
       const occurrenceByRaw = new Map<string, number>();
-      const seenOffsets = new Map<string, number>();
 
       for (const token of tagTokens) {
         if (!shouldHighlight(token, preset, settings)) continue;
         if (!token.raw) continue;
 
-        const prev = seenOffsets.get(token.raw);
-        const occurrence = prev === undefined ? 0 : occurrenceByRaw.get(token.raw) ?? 0;
-        const nextOccurrence = prev === undefined ? 0 : prev + 1;
-        occurrenceByRaw.set(token.raw, nextOccurrence + 1);
-        seenOffsets.set(token.raw, nextOccurrence);
+        const occurrence = occurrenceByRaw.get(token.raw) ?? 0;
+        occurrenceByRaw.set(token.raw, occurrence + 1);
 
-        const results = paragraph.search(token.raw, {
-          matchCase: true,
-          matchWholeWord: false,
-          matchPrefix: false,
-          matchSuffix: false,
-          matchWildcards: false,
-        });
-        results.load("items");
+        const primary = paragraph.search(token.raw, SEARCH_OPTIONS);
+        primary.load("items");
 
-        pending.push({
-          paragraphIndex: pIdx,
-          token,
-          occurrenceIndex: occurrence,
-          results,
-        });
+        let fallback: Word.RangeCollection | null = null;
+        const safeRaw = makeSafeRaw(token.raw, settings.syntax.delimiterOpen, settings.syntax.delimiterClose);
+        if (safeRaw && safeRaw !== token.raw && PROBLEMATIC.test(token.raw)) {
+          fallback = paragraph.search(safeRaw, SEARCH_OPTIONS);
+          fallback.load("items");
+        }
+
+        pending.push({ token, occurrenceIndex: occurrence, primary, fallback });
       }
     }
 
@@ -117,23 +110,26 @@ export async function applyHighlights(
     let tokensHighlighted = 0;
 
     for (const entry of pending) {
-      const list = entry.results.items;
-      const range = list[entry.occurrenceIndex];
-      if (!range) continue;
+      const primaryHits = entry.primary.items;
+      const range = primaryHits[entry.occurrenceIndex]
+        ?? entry.fallback?.items?.[entry.occurrenceIndex]
+        ?? null;
+
+      if (!range) {
+        console.warn(
+          "DocCrea: kon tag niet vinden in Word-document:",
+          entry.token.raw,
+        );
+        continue;
+      }
 
       const resolved = resolveStyle(entry.token, preset.styles);
       if (!resolved) continue;
 
       range.font.color = resolved.color;
-      if (resolved.highlight) {
-        range.font.highlightColor = resolved.highlight;
-      }
+      range.font.highlightColor = resolved.highlight ?? "No Color";
       range.font.bold = resolved.bold;
       range.font.underline = UNDERLINE_MAP[resolved.underline];
-
-      // Markeer de range met een custom property zodat Clear weet dat wij deze
-      // kleur hebben gezet (zie clearHighlights.ts + marker.ts).
-      tagRange(range);
 
       tokensHighlighted++;
     }
@@ -144,6 +140,14 @@ export async function applyHighlights(
   });
 }
 
+const SEARCH_OPTIONS: Word.SearchOptions | { [k: string]: boolean } = {
+  matchCase: true,
+  matchWholeWord: false,
+  matchPrefix: false,
+  matchSuffix: false,
+  matchWildcards: false,
+};
+
 function shouldHighlight(
   token: Token,
   preset: ColorPreset,
@@ -152,18 +156,34 @@ function shouldHighlight(
   if (token.kind === "text") return false;
   const resolved = resolveStyle(token, preset.styles);
   if (!resolved) return false;
-  // Als validatie uitstaat, sla invalid-tokens over.
-  if (token.kind === "invalid" && !settings.validation.checkSyntax && !settings.validation.checkBalance) {
+  if (
+    token.kind === "invalid" &&
+    !settings.validation.checkSyntax &&
+    !settings.validation.checkBalance
+  ) {
     return false;
   }
   return true;
 }
 
-function tagRange(range: Word.Range): void {
-  // Word's customXmlParts of ContentControl zijn te zwaar voor per-tag; we
-  // gebruiken een truc: de font.color is op zichzelf al het signaal dat
-  // Clear gebruikt. Zie clearHighlights.ts voor de precieze matching. De MARKER
-  // is daar een fallback-vergelijking.
-  void range;
-  void MARKER;
+/**
+ * Levert een kortere, 'veilige' variant van de tag-string voor Word search.
+ * Strip trailing non-woord tekens die Word als wildcards kan interpreteren
+ * (bv. `)` in `{/Foutt)`). Zolang het open-delimiter nog aan het begin staat
+ * kleurt de gebruiker dan in elk geval het herkenbare deel van de tag.
+ */
+export function makeSafeRaw(raw: string, open: string, close: string): string | null {
+  if (!raw.startsWith(open)) return null;
+  // Drop trailing tekens die geen veilige tag-naam-chars of de close-delimiter
+  // zijn. `[`/`]` mogen in valide namen voorkomen ({items[0]}) maar als ze
+  // TRAILING zijn (na een misvormde tag) moeten ze er juist af.
+  let end = raw.length;
+  while (end > open.length) {
+    const ch = raw[end - 1];
+    if (ch === close || /[A-Za-z0-9_.\-]/.test(ch)) break;
+    end--;
+  }
+  if (end <= open.length) return null;
+  const stripped = raw.slice(0, end);
+  return stripped;
 }
