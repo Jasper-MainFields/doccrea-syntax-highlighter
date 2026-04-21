@@ -8,13 +8,9 @@ export interface ClearOutcome {
 }
 
 /**
- * Reset alle DocxTemplater-tag-ranges naar Word's default-formatting.
- *
- * We herparsen per paragraaf om exact dezelfde ranges te vinden als
- * `applyHighlights` gebruikte. Daarna zetten we color/highlight/bold/underline
- * terug op `null`-achtige waarden zodat Word de stijl van de underlying
- * paragraaf weer gebruikt. We laten andere formatting (bv. door de gebruiker
- * zelf toegepast) intact — Clear raakt alleen de properties aan die wij zetten.
+ * Reset alle tag-ranges terug naar Word-default-formatting.
+ * Per paragraaf een eigen try/catch zodat één probleem-paragraaf de rest
+ * niet sloopt. Zelfde one-search-per-unique-raw strategie als applyHighlights.
  */
 export async function clearHighlights(settings: AppSettings): Promise<ClearOutcome> {
   return Word.run(async (context) => {
@@ -27,70 +23,87 @@ export async function clearHighlights(settings: AppSettings): Promise<ClearOutco
     for (const p of paragraphItems) p.load("text");
     await context.sync();
 
-    interface Pending {
-      token: TagToken;
-      results: Word.RangeCollection;
-      occurrenceIndex: number;
-    }
-    const pending: Pending[] = [];
+    let cleared = 0;
 
-    for (const paragraph of paragraphItems) {
+    for (let pIdx = 0; pIdx < paragraphItems.length; pIdx++) {
+      const paragraph = paragraphItems[pIdx];
       const text = paragraph.text ?? "";
       if (text.trim().length === 0) continue;
 
-      const tokens = tokenize(text, {
-        delimiters: {
-          open: settings.syntax.delimiterOpen,
-          close: settings.syntax.delimiterClose,
-        },
-        allowDiacritics: settings.syntax.allowDiacritics,
-        angularParser: settings.syntax.angularParser,
-      });
-
-      const occurrenceByRaw = new Map<string, number>();
-      for (const token of tokens) {
-        if (token.kind === "text") continue;
-        if (!token.raw) continue;
-
-        const occurrence = occurrenceByRaw.get(token.raw) ?? 0;
-        occurrenceByRaw.set(token.raw, occurrence + 1);
-
-        const results = paragraph.search(token.raw, {
-          matchCase: true,
-          matchWholeWord: false,
-          matchPrefix: false,
-          matchSuffix: false,
-          matchWildcards: false,
-        });
-        results.load("items");
-        pending.push({ token: token as TagToken, results, occurrenceIndex: occurrence });
+      try {
+        cleared += await clearOneParagraph(context, paragraph, text, settings);
+      } catch (err) {
+        console.warn(`DocCrea: paragraaf ${pIdx} faalde bij clear:`, err);
+        try {
+          await context.sync();
+        } catch {
+          // negeer en ga door
+        }
       }
     }
 
-    await context.sync();
-
-    let cleared = 0;
-    for (const entry of pending) {
-      const range = entry.results.items[entry.occurrenceIndex];
-      if (!range) continue;
-      resetFontToAuto(range);
-      cleared++;
-    }
-
-    await context.sync();
     return { cleared };
   });
 }
 
+async function clearOneParagraph(
+  context: Word.RequestContext,
+  paragraph: Word.Paragraph,
+  text: string,
+  settings: AppSettings,
+): Promise<number> {
+  const tokens = tokenize(text, {
+    delimiters: {
+      open: settings.syntax.delimiterOpen,
+      close: settings.syntax.delimiterClose,
+    },
+    allowDiacritics: settings.syntax.allowDiacritics,
+    angularParser: settings.syntax.angularParser,
+  });
+
+  const tagTokens = tokens.filter((t): t is TagToken => t.kind !== "text" && !!t.raw);
+  if (tagTokens.length === 0) return 0;
+
+  const searches = new Map<string, Word.RangeCollection>();
+  for (const token of tagTokens) {
+    if (searches.has(token.raw)) continue;
+    if (token.raw.length > 250) continue;
+    const r = paragraph.search(token.raw, {
+      matchCase: true,
+      matchWholeWord: false,
+      matchPrefix: false,
+      matchSuffix: false,
+      matchWildcards: false,
+    });
+    r.load("items");
+    searches.set(token.raw, r);
+  }
+
+  await context.sync();
+
+  const occurrenceByRaw = new Map<string, number>();
+  let cleared = 0;
+
+  for (const token of tagTokens) {
+    const occurrence = occurrenceByRaw.get(token.raw) ?? 0;
+    occurrenceByRaw.set(token.raw, occurrence + 1);
+
+    const results = searches.get(token.raw);
+    const range = results?.items?.[occurrence];
+    if (!range) continue;
+
+    resetFontToAuto(range);
+    cleared++;
+  }
+
+  await context.sync();
+  return cleared;
+}
+
 /**
- * Reset de properties die DocCrea kan zetten terug naar Word-default.
- * Word Mac weigert speciale strings als `"Automatic"` of `""` voor font.color
- * (InvalidArgument). We zetten daarom expliciet naar zwart; voor markering
- * accepteert Office.js expliciet `null` om het te verwijderen.
- *
- * Caveat: als een gebruiker een eigen niet-zwarte tekstkleur had op een tag,
- * wordt die bij Clear ook zwart. Dat is acceptabel voor MVP; de echte
- * oplossing is per-range originele kleuren onthouden vóór we highlighten.
+ * Reset tekstkleur + markering. `"#000000"` (zwart) als tekstkleur — Word Mac
+ * weigert `"Automatic"` / `""`. Voor markering gebruikt Office.js expliciet
+ * `null` om de highlight weg te halen (niet beschikbaar in TS-types).
  */
 function resetFontToAuto(range: Word.Range): void {
   range.font.color = "#000000";

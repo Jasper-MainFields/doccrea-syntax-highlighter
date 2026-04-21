@@ -1,4 +1,4 @@
-import type { IssueLocation } from "../../word/applyHighlights.js";
+import type { HighlightError, IssueLocation } from "../../word/applyHighlights.js";
 import type { ValidationIssue } from "../../core/types.js";
 
 const LAST_RUN_KEY = "doccrea.lastRun.v1";
@@ -8,6 +8,7 @@ export interface LastRun {
   tokensHighlighted: number;
   issues: ValidationIssue[];
   issueLocations: IssueLocation[];
+  errors?: HighlightError[];
 }
 
 export function loadLastRun(): LastRun | null {

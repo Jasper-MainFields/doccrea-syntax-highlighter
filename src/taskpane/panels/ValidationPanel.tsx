@@ -98,6 +98,7 @@ export function ValidationPanel(): JSX.Element {
         tokensHighlighted: result.tokensHighlighted,
         issues: result.issues,
         issueLocations: result.issueLocations,
+        errors: result.errors,
       };
       await saveLastRun(run);
       setLastRun(run);
@@ -185,6 +186,18 @@ export function ValidationPanel(): JSX.Element {
           </MessageBarBody>
         </MessageBar>
       )}
+
+      {lastRun?.errors?.length ? (
+        <MessageBar intent="warning">
+          <MessageBarBody>
+            <MessageBarTitle>
+              {lastRun.errors.length} paragraaf
+              {lastRun.errors.length === 1 ? "" : "en"} overgeslagen
+            </MessageBarTitle>
+            Niet alle tags konden gekleurd worden. Zie de browser-console voor details.
+          </MessageBarBody>
+        </MessageBar>
+      ) : null}
 
       {lastRun && !hasIssues && (
         <MessageBar intent="success">
