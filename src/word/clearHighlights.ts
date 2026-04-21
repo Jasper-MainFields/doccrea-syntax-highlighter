@@ -83,13 +83,14 @@ export async function clearHighlights(settings: AppSettings): Promise<ClearOutco
 
 /**
  * Reset de properties die DocCrea kan zetten terug naar Word-default.
- * `"Automatic"` is Word's eigen term voor "auto/inherit tekstkleur" —
- * veilige reset. `"No Color"` is de officiële reset-waarde voor
- * highlightColor; een lege string geeft InvalidArgument.
+ * `"Automatic"` is Word's eigen term voor "auto/inherit tekstkleur".
+ * Voor `highlightColor` verwacht Office.js expliciet `null` (niet `""` of
+ * "No Color") om de markering te verwijderen — de TypeScript-types kennen dat
+ * niet dus een bewuste cast.
  */
 function resetFontToAuto(range: Word.Range): void {
   range.font.color = "Automatic";
-  range.font.highlightColor = "No Color";
+  (range.font as unknown as { highlightColor: string | null }).highlightColor = null;
   range.font.bold = false;
   range.font.underline = "None" as Word.UnderlineType;
 }

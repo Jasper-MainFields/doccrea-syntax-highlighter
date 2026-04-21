@@ -127,7 +127,15 @@ export async function applyHighlights(
       if (!resolved) continue;
 
       range.font.color = resolved.color;
-      range.font.highlightColor = resolved.highlight ?? "No Color";
+      if (resolved.highlight) {
+        range.font.highlightColor = resolved.highlight;
+      } else {
+        // Office.js verwacht null (niet "" of "No Color") om een highlight te
+        // verwijderen. De TypeScript-types kennen dat alleen als string —
+        // daarom een bewuste cast. Zonder dit krijgt Highlight een
+        // InvalidArgument op tokens zonder gewenste markering.
+        setHighlightNull(range);
+      }
       range.font.bold = resolved.bold;
       range.font.underline = UNDERLINE_MAP[resolved.underline];
 
@@ -138,6 +146,10 @@ export async function applyHighlights(
 
     return { tokensHighlighted, issues: allIssues, issueLocations };
   });
+}
+
+function setHighlightNull(range: Word.Range): void {
+  (range.font as unknown as { highlightColor: string | null }).highlightColor = null;
 }
 
 const SEARCH_OPTIONS: Word.SearchOptions | { [k: string]: boolean } = {
