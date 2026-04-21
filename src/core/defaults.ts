@@ -54,10 +54,12 @@ export interface AppSettings {
   schemaVersion: 1;
 }
 
-const MAINFIELDS_SECONDARY = "#2E8B8B";
-const MAINFIELDS_ACCENT = "#7B4BA8";
+// Kleuren uit het officiële MainFields-logo (2025). Zie
+// MainFields-Logo-Compleet-2025.svg (.st0/.st1/.st2).
+const MAINFIELDS_TEAL = "#029E94";
+const MAINFIELDS_GRAY = "#595959";
+const MAINFIELDS_MAGENTA = "#FC21D4";
 const MAINFIELDS_WARNING = "#D97706";
-const MAINFIELDS_NEUTRAL = "#6B7280";
 const ERROR_RED = "#C0392B";
 
 function buildMainFieldsPreset(): ColorPreset {
@@ -79,7 +81,7 @@ function buildMainFieldsPreset(): ColorPreset {
       },
       "section-open": {
         enabled: true,
-        color: MAINFIELDS_SECONDARY,
+        color: MAINFIELDS_TEAL,
         highlight: null,
         bold: true,
         underline: "none",
@@ -87,7 +89,7 @@ function buildMainFieldsPreset(): ColorPreset {
       },
       "section-close": {
         enabled: true,
-        color: MAINFIELDS_SECONDARY,
+        color: MAINFIELDS_TEAL,
         highlight: null,
         bold: true,
         underline: "none",
@@ -95,7 +97,7 @@ function buildMainFieldsPreset(): ColorPreset {
       },
       "inverted-open": {
         enabled: true,
-        color: MAINFIELDS_ACCENT,
+        color: MAINFIELDS_MAGENTA,
         highlight: null,
         bold: true,
         underline: "none",
@@ -110,7 +112,7 @@ function buildMainFieldsPreset(): ColorPreset {
       },
       partial: {
         enabled: true,
-        color: MAINFIELDS_NEUTRAL,
+        color: MAINFIELDS_GRAY,
         highlight: null,
         bold: false,
         underline: "none",
