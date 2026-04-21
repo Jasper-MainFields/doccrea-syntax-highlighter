@@ -192,7 +192,7 @@ export function makeSafeRaw(raw: string, open: string, close: string): string | 
   let end = raw.length;
   while (end > open.length) {
     const ch = raw[end - 1];
-    if (ch === close || /[A-Za-z0-9_.\-]/.test(ch)) break;
+    if (ch === close || /[A-Za-z0-9_.-]/.test(ch)) break;
     end--;
   }
   if (end <= open.length) return null;
