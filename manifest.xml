@@ -8,7 +8,7 @@
 
   <!-- Genereer eenmalig nieuwe GUIDs bij publicatie. Deze zijn stabiel per add-in. -->
   <Id>8b7a6c3e-1a2d-4e5f-9b8c-7d4e5f6a7b8c</Id>
-  <Version>0.1.0.0</Version>
+  <Version>1.0.0.0</Version>
   <ProviderName>MainFields</ProviderName>
   <DefaultLocale>nl-NL</DefaultLocale>
 
@@ -47,19 +47,19 @@
 
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <OfficeTab id="TabHome">
-              <Group id="DocCrea.Group">
-                <Label resid="DocCrea.Group.Label" />
+              <Group id="DC.Grp">
+                <Label resid="DC.Grp.Lbl" />
                 <Icon>
                   <bt:Image size="16" resid="Icon.16x16" />
                   <bt:Image size="32" resid="Icon.32x32" />
                   <bt:Image size="80" resid="Icon.80x80" />
                 </Icon>
 
-                <Control xsi:type="Button" id="DocCrea.HighlightButton">
-                  <Label resid="DocCrea.Highlight.Label" />
+                <Control xsi:type="Button" id="DC.Hl.Btn">
+                  <Label resid="DC.Hl.Lbl" />
                   <Supertip>
-                    <Title resid="DocCrea.Highlight.Label" />
-                    <Description resid="DocCrea.Highlight.Tooltip" />
+                    <Title resid="DC.Hl.Lbl" />
+                    <Description resid="DC.Hl.Tip" />
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16" />
@@ -71,11 +71,11 @@
                   </Action>
                 </Control>
 
-                <Control xsi:type="Button" id="DocCrea.ClearButton">
-                  <Label resid="DocCrea.Clear.Label" />
+                <Control xsi:type="Button" id="DC.Cl.Btn">
+                  <Label resid="DC.Cl.Lbl" />
                   <Supertip>
-                    <Title resid="DocCrea.Clear.Label" />
-                    <Description resid="DocCrea.Clear.Tooltip" />
+                    <Title resid="DC.Cl.Lbl" />
+                    <Description resid="DC.Cl.Tip" />
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16" />
@@ -87,11 +87,11 @@
                   </Action>
                 </Control>
 
-                <Control xsi:type="Menu" id="DocCrea.SnippetsMenu">
-                  <Label resid="DocCrea.Snippets.Label" />
+                <Control xsi:type="Menu" id="DC.Sn.Menu">
+                  <Label resid="DC.Sn.Lbl" />
                   <Supertip>
-                    <Title resid="DocCrea.Snippets.Label" />
-                    <Description resid="DocCrea.Snippets.Tooltip" />
+                    <Title resid="DC.Sn.Lbl" />
+                    <Description resid="DC.Sn.Tip" />
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16" />
@@ -99,11 +99,11 @@
                     <bt:Image size="80" resid="Icon.80x80" />
                   </Icon>
                   <Items>
-                    <Item id="DocCrea.Snippet.Placeholder">
-                      <Label resid="DocCrea.Snippet.Placeholder.Label" />
+                    <Item id="DC.S.PH">
+                      <Label resid="DC.S.PH.Lbl" />
                       <Supertip>
-                        <Title resid="DocCrea.Snippet.Placeholder.Label" />
-                        <Description resid="DocCrea.Snippet.Placeholder.Tooltip" />
+                        <Title resid="DC.S.PH.Lbl" />
+                        <Description resid="DC.S.PH.Tip" />
                       </Supertip>
                       <Icon>
                         <bt:Image size="16" resid="Icon.16x16" />
@@ -114,11 +114,11 @@
                         <FunctionName>insertSnippetPlaceholder</FunctionName>
                       </Action>
                     </Item>
-                    <Item id="DocCrea.Snippet.Loop">
-                      <Label resid="DocCrea.Snippet.Loop.Label" />
+                    <Item id="DC.S.Loop">
+                      <Label resid="DC.S.Loop.Lbl" />
                       <Supertip>
-                        <Title resid="DocCrea.Snippet.Loop.Label" />
-                        <Description resid="DocCrea.Snippet.Loop.Tooltip" />
+                        <Title resid="DC.S.Loop.Lbl" />
+                        <Description resid="DC.S.Loop.Tip" />
                       </Supertip>
                       <Icon>
                         <bt:Image size="16" resid="Icon.16x16" />
@@ -129,11 +129,11 @@
                         <FunctionName>insertSnippetLoop</FunctionName>
                       </Action>
                     </Item>
-                    <Item id="DocCrea.Snippet.Condition">
-                      <Label resid="DocCrea.Snippet.Condition.Label" />
+                    <Item id="DC.S.Cond">
+                      <Label resid="DC.S.Cond.Lbl" />
                       <Supertip>
-                        <Title resid="DocCrea.Snippet.Condition.Label" />
-                        <Description resid="DocCrea.Snippet.Condition.Tooltip" />
+                        <Title resid="DC.S.Cond.Lbl" />
+                        <Description resid="DC.S.Cond.Tip" />
                       </Supertip>
                       <Icon>
                         <bt:Image size="16" resid="Icon.16x16" />
@@ -144,11 +144,11 @@
                         <FunctionName>insertSnippetCondition</FunctionName>
                       </Action>
                     </Item>
-                    <Item id="DocCrea.Snippet.Inverted">
-                      <Label resid="DocCrea.Snippet.Inverted.Label" />
+                    <Item id="DC.S.Inv">
+                      <Label resid="DC.S.Inv.Lbl" />
                       <Supertip>
-                        <Title resid="DocCrea.Snippet.Inverted.Label" />
-                        <Description resid="DocCrea.Snippet.Inverted.Tooltip" />
+                        <Title resid="DC.S.Inv.Lbl" />
+                        <Description resid="DC.S.Inv.Tip" />
                       </Supertip>
                       <Icon>
                         <bt:Image size="16" resid="Icon.16x16" />
@@ -159,11 +159,11 @@
                         <FunctionName>insertSnippetInverted</FunctionName>
                       </Action>
                     </Item>
-                    <Item id="DocCrea.Snippet.RawXml">
-                      <Label resid="DocCrea.Snippet.RawXml.Label" />
+                    <Item id="DC.S.Raw">
+                      <Label resid="DC.S.Raw.Lbl" />
                       <Supertip>
-                        <Title resid="DocCrea.Snippet.RawXml.Label" />
-                        <Description resid="DocCrea.Snippet.RawXml.Tooltip" />
+                        <Title resid="DC.S.Raw.Lbl" />
+                        <Description resid="DC.S.Raw.Tip" />
                       </Supertip>
                       <Icon>
                         <bt:Image size="16" resid="Icon.16x16" />
@@ -174,11 +174,11 @@
                         <FunctionName>insertSnippetRawXml</FunctionName>
                       </Action>
                     </Item>
-                    <Item id="DocCrea.Snippet.TableRow">
-                      <Label resid="DocCrea.Snippet.TableRow.Label" />
+                    <Item id="DC.S.Row">
+                      <Label resid="DC.S.Row.Lbl" />
                       <Supertip>
-                        <Title resid="DocCrea.Snippet.TableRow.Label" />
-                        <Description resid="DocCrea.Snippet.TableRow.Tooltip" />
+                        <Title resid="DC.S.Row.Lbl" />
+                        <Description resid="DC.S.Row.Tip" />
                       </Supertip>
                       <Icon>
                         <bt:Image size="16" resid="Icon.16x16" />
@@ -192,11 +192,11 @@
                   </Items>
                 </Control>
 
-                <Control xsi:type="Button" id="DocCrea.SettingsButton">
-                  <Label resid="DocCrea.Settings.Label" />
+                <Control xsi:type="Button" id="DC.St.Btn">
+                  <Label resid="DC.St.Lbl" />
                   <Supertip>
-                    <Title resid="DocCrea.Settings.Label" />
-                    <Description resid="DocCrea.Settings.Tooltip" />
+                    <Title resid="DC.St.Lbl" />
+                    <Description resid="DC.St.Tip" />
                   </Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.16x16" />
@@ -204,7 +204,7 @@
                     <bt:Image size="80" resid="Icon.80x80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>DocCrea.Taskpane</TaskpaneId>
+                    <TaskpaneId>DC.Tp</TaskpaneId>
                     <SourceLocation resid="Taskpane.Url" />
                   </Action>
                 </Control>
@@ -229,30 +229,30 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GetStarted.Title" DefaultValue="DocCrea Syntax Highlighter" />
-        <bt:String id="DocCrea.Group.Label" DefaultValue="DocCrea" />
-        <bt:String id="DocCrea.Highlight.Label" DefaultValue="Highlight" />
-        <bt:String id="DocCrea.Clear.Label" DefaultValue="Clear" />
-        <bt:String id="DocCrea.Snippets.Label" DefaultValue="Snippets" />
-        <bt:String id="DocCrea.Settings.Label" DefaultValue="Instellingen" />
-        <bt:String id="DocCrea.Snippet.Placeholder.Label" DefaultValue="Placeholder {var}" />
-        <bt:String id="DocCrea.Snippet.Loop.Label" DefaultValue="Loop {#items}" />
-        <bt:String id="DocCrea.Snippet.Condition.Label" DefaultValue="Conditie {#als}" />
-        <bt:String id="DocCrea.Snippet.Inverted.Label" DefaultValue="Inverted {^}" />
-        <bt:String id="DocCrea.Snippet.RawXml.Label" DefaultValue="Raw XML {@}" />
-        <bt:String id="DocCrea.Snippet.TableRow.Label" DefaultValue="Tabelrij-loop" />
+        <bt:String id="DC.Grp.Lbl" DefaultValue="DocCrea" />
+        <bt:String id="DC.Hl.Lbl" DefaultValue="Highlight" />
+        <bt:String id="DC.Cl.Lbl" DefaultValue="Clear" />
+        <bt:String id="DC.Sn.Lbl" DefaultValue="Snippets" />
+        <bt:String id="DC.St.Lbl" DefaultValue="Instellingen" />
+        <bt:String id="DC.S.PH.Lbl" DefaultValue="Placeholder {var}" />
+        <bt:String id="DC.S.Loop.Lbl" DefaultValue="Loop {#items}" />
+        <bt:String id="DC.S.Cond.Lbl" DefaultValue="Conditie {#als}" />
+        <bt:String id="DC.S.Inv.Lbl" DefaultValue="Inverted {^}" />
+        <bt:String id="DC.S.Raw.Lbl" DefaultValue="Raw XML {@}" />
+        <bt:String id="DC.S.Row.Lbl" DefaultValue="Tabelrij-loop" />
       </bt:ShortStrings>
       <bt:LongStrings>
         <bt:String id="GetStarted.Description" DefaultValue="Open de DocCrea-tab in het lint om je sjabloon te kleuren en te controleren." />
-        <bt:String id="DocCrea.Highlight.Tooltip" DefaultValue="Scan het hele document en kleur alle DocxTemplater-tags." />
-        <bt:String id="DocCrea.Clear.Tooltip" DefaultValue="Verwijder alle DocCrea-kleuringen uit het document." />
-        <bt:String id="DocCrea.Snippets.Tooltip" DefaultValue="Voeg veelgebruikte DocxTemplater-syntaxen toe op de cursor." />
-        <bt:String id="DocCrea.Settings.Tooltip" DefaultValue="Open het instellingenpaneel voor kleuren, syntax en snippets." />
-        <bt:String id="DocCrea.Snippet.Placeholder.Tooltip" DefaultValue="Voeg een placeholder toe zoals {veldnaam}." />
-        <bt:String id="DocCrea.Snippet.Loop.Tooltip" DefaultValue="Voeg een loop toe: {#items}...{/items}." />
-        <bt:String id="DocCrea.Snippet.Condition.Tooltip" DefaultValue="Voeg een conditie toe: {#als}...{/als}." />
-        <bt:String id="DocCrea.Snippet.Inverted.Tooltip" DefaultValue="Voeg een inverted sectie toe: {^als}...{/als}." />
-        <bt:String id="DocCrea.Snippet.RawXml.Tooltip" DefaultValue="Voeg een raw XML placeholder toe: {@html}." />
-        <bt:String id="DocCrea.Snippet.TableRow.Tooltip" DefaultValue="Voeg een kant-en-klare tabelrij-loop toe." />
+        <bt:String id="DC.Hl.Tip" DefaultValue="Scan het hele document en kleur alle DocxTemplater-tags." />
+        <bt:String id="DC.Cl.Tip" DefaultValue="Verwijder alle DocCrea-kleuringen uit het document." />
+        <bt:String id="DC.Sn.Tip" DefaultValue="Voeg veelgebruikte DocxTemplater-syntaxen toe op de cursor." />
+        <bt:String id="DC.St.Tip" DefaultValue="Open het instellingenpaneel voor kleuren, syntax en snippets." />
+        <bt:String id="DC.S.PH.Tip" DefaultValue="Voeg een placeholder toe zoals {veldnaam}." />
+        <bt:String id="DC.S.Loop.Tip" DefaultValue="Voeg een loop toe: {#items}...{/items}." />
+        <bt:String id="DC.S.Cond.Tip" DefaultValue="Voeg een conditie toe: {#als}...{/als}." />
+        <bt:String id="DC.S.Inv.Tip" DefaultValue="Voeg een inverted sectie toe: {^als}...{/als}." />
+        <bt:String id="DC.S.Raw.Tip" DefaultValue="Voeg een raw XML placeholder toe: {@html}." />
+        <bt:String id="DC.S.Row.Tip" DefaultValue="Voeg een kant-en-klare tabelrij-loop toe." />
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
