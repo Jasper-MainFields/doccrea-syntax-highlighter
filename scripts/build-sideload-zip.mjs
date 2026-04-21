@@ -26,7 +26,7 @@ if (existsSync(DOCS)) {
   cpSync(DOCS, STAGING, { recursive: true });
 }
 
-const readme = `DocCrea Syntax Highlighter — Installatiehandleiding
+const readme = `MainFields DocCrea Syntax Highlighter — Installatiehandleiding
 
 1. Sluit Word volledig af.
 2. Kopieer 'manifest.xml' naar je lokale Office-sideload-map:

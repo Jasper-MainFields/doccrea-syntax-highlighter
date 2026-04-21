@@ -16,6 +16,9 @@ import { SyntaxPanel } from "./panels/SyntaxPanel.js";
 import { SnippetsPanel } from "./panels/SnippetsPanel.js";
 import { AboutPanel } from "./panels/AboutPanel.js";
 
+// MainFields huisstijl — dezelfde basis als de icon-gradient in scripts/generate-icons.mjs.
+export const MAINFIELDS_BRAND_COLOR = "#0F4C81";
+
 const useStyles = makeStyles({
   container: {
     display: "flex",
@@ -31,8 +34,9 @@ const useStyles = makeStyles({
     flexDirection: "column",
     gap: tokens.spacingVerticalXS,
   },
-  brand: {
-    color: tokens.colorBrandForeground1,
+  brandWord: {
+    color: MAINFIELDS_BRAND_COLOR,
+    fontWeight: tokens.fontWeightBold,
   },
   content: {
     flex: 1,
@@ -55,8 +59,12 @@ export function App(): JSX.Element {
     <SettingsProvider>
       <div className={styles.container}>
         <header className={styles.header}>
-          <Title2 className={styles.brand}>DocCrea Syntax Highlighter</Title2>
-          <Caption1>Gemaakt door MainFields</Caption1>
+          <Title2>
+            <span className={styles.brandWord}>MainFields</span> DocCrea Syntax Highlighter
+          </Title2>
+          <Caption1>
+            Gemaakt door <span className={styles.brandWord}>MainFields</span>
+          </Caption1>
         </header>
 
         <TabList selectedValue={tab} onTabSelect={onTabSelect}>

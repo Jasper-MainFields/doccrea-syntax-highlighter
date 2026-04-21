@@ -1,4 +1,4 @@
-# DocCrea Syntax Highlighter — Snelstart
+# MainFields DocCrea Syntax Highlighter — Snelstart
 
 ## De vier knoppen in het lint
 

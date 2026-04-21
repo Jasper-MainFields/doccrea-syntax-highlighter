@@ -1,4 +1,4 @@
-# DocCrea Syntax Highlighter — Installeren in Word
+# MainFields DocCrea Syntax Highlighter — Installeren in Word
 
 Deze add-in werkt op Word voor Windows, Mac en Word Online. Je hebt hem in drie
 minuten geïnstalleerd.

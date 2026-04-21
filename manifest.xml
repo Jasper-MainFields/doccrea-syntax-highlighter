@@ -12,7 +12,7 @@
   <ProviderName>MainFields</ProviderName>
   <DefaultLocale>nl-NL</DefaultLocale>
 
-  <DisplayName DefaultValue="DocCrea Syntax Highlighter" />
+  <DisplayName DefaultValue="MainFields DocCrea Syntax Highlighter" />
   <Description DefaultValue="Kleurt en controleert DocxTemplater-syntaxen in je Word-sjablonen. Gemaakt door MainFields." />
   <IconUrl DefaultValue="https://jasper-mainfields.github.io/doccrea-syntax-highlighter/assets/icons/icon-64.png" />
   <HighResolutionIconUrl DefaultValue="https://jasper-mainfields.github.io/doccrea-syntax-highlighter/assets/icons/icon-128.png" />

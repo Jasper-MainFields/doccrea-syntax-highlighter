@@ -2,7 +2,7 @@
   "name": "doccrea-syntax-highlighter",
   "version": "0.1.0",
   "private": true,
-  "description": "Word Add-in die DocxTemplater-syntaxen kleurt en valideert. Gemaakt door MainFields.",
+  "description": "MainFields DocCrea Syntax Highlighter — Word Add-in die DocxTemplater-syntaxen kleurt en valideert.",
   "author": "MainFields (Jasper Bakker)",
   "homepage": "https://www.mainfields.nl",
   "repository": {

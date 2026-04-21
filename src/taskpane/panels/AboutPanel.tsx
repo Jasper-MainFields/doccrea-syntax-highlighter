@@ -1,4 +1,5 @@
 import { makeStyles, tokens, Title3, Body1, Caption1, Link } from "@fluentui/react-components";
+import { MAINFIELDS_BRAND_COLOR } from "../App.js";
 
 const useStyles = makeStyles({
   wrap: {
@@ -14,6 +15,10 @@ const useStyles = makeStyles({
     flexDirection: "column",
     gap: tokens.spacingVerticalS,
   },
+  brand: {
+    color: MAINFIELDS_BRAND_COLOR,
+    fontWeight: tokens.fontWeightBold,
+  },
 });
 
 const APP_VERSION = "0.1.0";
@@ -22,13 +27,20 @@ export function AboutPanel(): JSX.Element {
   const s = useStyles();
   return (
     <div className={s.wrap}>
-      <Title3>DocCrea Syntax Highlighter</Title3>
+      <Title3>
+        <span className={s.brand}>MainFields</span> DocCrea Syntax Highlighter
+      </Title3>
       <Caption1>Versie {APP_VERSION}</Caption1>
 
       <div className={s.block}>
         <Body1>
           Gemaakt door{" "}
-          <Link href="https://www.mainfields.nl" target="_blank" rel="noopener noreferrer">
+          <Link
+            href="https://www.mainfields.nl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={s.brand}
+          >
             MainFields
           </Link>
           . Deze add-in kleurt DocxTemplater-syntaxen en vangt fouten vóór je je sjabloon rendert.

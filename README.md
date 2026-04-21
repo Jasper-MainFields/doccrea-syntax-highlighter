@@ -1,4 +1,4 @@
-# DocCrea Syntax Highlighter
+# MainFields DocCrea Syntax Highlighter
 
 Word-add-in die DocxTemplater-syntaxen in een document kleurt en controleert.
 Gemaakt door [MainFields](https://www.mainfields.nl).
