@@ -267,13 +267,23 @@ const WILDCARD_SEARCH_OPTIONS: Word.SearchOptions | { [k: string]: boolean } = {
 };
 
 /**
- * Escape voor Word search in wildcard-modus. Wildcards zijn:
- *   ? * @ < > ! ( ) [ ] { } \ ^ = ;
- * Alle bovenstaande moeten worden voorafgegaan door een backslash om
- * letterlijk te matchen.
+ * Escape voor Word search in wildcard-modus.
+ *
+ * Twee verschillende escape-regels:
+ *  - `^` is Word's prefix voor control codes (^p = paragraaf, ^t = tab, ^13 =
+ *    newline). Om een LETTERLIJK caret te matchen, verdubbel je hem: `^^`.
+ *    `\^` werkt NIET in Word search en maakt de hele query ongeldig
+ *    (InvalidArgument bij sync → paragraaf wordt overgeslagen).
+ *  - Overige wildcards (`? * @ ( ) [ ] { } < > ! \ = ;`) escape je met
+ *    een backslash: `\?`, `\{`, enz.
+ *
+ * Volgorde: eerst `^` → `^^` zodat de backslash-pass daarna niets aan het
+ * caret verandert.
  */
 export function escapeForWildcardSearch(raw: string): string {
-  return raw.replace(/([?*@<>!()[\]{}\\^=;])/g, "\\$1");
+  return raw
+    .replace(/\^/g, "^^")
+    .replace(/([?*@<>!()[\]{}\\=;])/g, "\\$1");
 }
 
 function shouldHighlight(

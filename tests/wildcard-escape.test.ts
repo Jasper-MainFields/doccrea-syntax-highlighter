@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { escapeForWildcardSearch } from "../src/word/applyHighlights.js";
 
 describe("escapeForWildcardSearch", () => {
-  it("escape't `^` — de grootste boosdoener (Word interpreteert ^p, ^t, ...)", () => {
-    expect(escapeForWildcardSearch("{^productnaam}")).toBe("\\{\\^productnaam\\}");
+  it("escape't `^` als `^^` (Word's literal-caret syntax, niet `\\^`)", () => {
+    expect(escapeForWildcardSearch("{^productnaam}")).toBe("\\{^^productnaam\\}");
   });
 
   it("escape't `{` en `}` zodat ze letterlijk matchen", () => {
